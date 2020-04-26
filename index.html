@@ -1,0 +1,343 @@
+<html>
+
+<meta charset="UTF-8">
+
+<head>
+  <title> World Of Warships AP Calculator </title>
+  <script src="thirdparty/jquery-3.2.1.min.js"></script>
+  <link href="thirdparty/c3.min.css" rel="stylesheet">
+  <script src="thirdparty/d3.v3.min.js"></script>
+  <script src="thirdparty/c3.min.js"></script>
+<!--  <script src='thirdparty/require.js'></script> -->
+  <script src="calculator.js"></script>
+  <script src="c3_chart.js"></script>
+  <script src="multi_chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.min.js"> </script>
+
+
+  <script>
+   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-103434573-1', 'auto');
+  ga('send', 'pageview');
+  </script>
+</head>
+
+<body>
+
+<h1>World of Warships AP penetration calculator Beta 0.72</h1>
+<h2>Now can compare ships between different versions.</h2>
+<h2>Client Versions Included: 0.9.3</h2>
+
+
+<p>This is a test version based on US NAVY penetration formula and game file data mining.</p>
+<p>Click on the legends to turn on/off each line.</p>
+<table>
+  <tr>
+    <td>
+<h2>Ship A:</h2>
+<p>version:
+  <select id="version1" onchange="load_nation(1);"></select>
+<p>
+<p>nation:
+<select id="nation1" onchange="load_types(1);"></select>
+</p>
+
+<p>ship type:
+<select id="shiptype1" onchange="load_ships(1);"></select>
+</p>
+
+<p>ship list:
+<select id="shiplist1" onchange="load_ammo(1);"></select>
+</p>
+
+<p>ammo list:
+<select id="ammolist1" onchange="ammo_properties(1);"></select>
+</p>
+<!--
+<p><textarea id="value_loaded"></textarea></p>
+-->
+
+<p><div id="ammo_selected_name1"></div>
+<div id="ammo_selected_airdrag1" ></div>
+<div  id="ammo_selected_diametr1"></div>
+<div  id="ammo_selected_mass1"></div>
+<div id="ammo_selected_krupp1"></div>
+<div id="ammo_selected_speed1"></div>
+<div id="ammo_selected_rico_start1"></div>
+<div id="ammo_selected_rico_always1"></div>
+<div id="ammo_selected_detotime1"></div>
+<div id="ammo_selected_detothresh1"></div></p>
+</td>/
+<td>
+<h2>Ship B:</h2>
+<p>version:
+  <select id="version2" onchange="load_nation(2);"></select>
+<p>
+<p>nation:
+<select id="nation2" onchange="load_types(2);"></select>
+</p>
+
+<p>ship type:
+<select id="shiptype2" onchange="load_ships(2);"></select>
+</p>
+
+<p>ship list:
+<select id="shiplist2" onchange="load_ammo(2);"></select>
+</p>
+
+<p>ammo list:
+<select id="ammolist2" onchange="ammo_properties(2);"></select>
+</p>
+<!--
+<p><textarea id="value_loaded"></textarea></p>
+-->
+
+<p><div id="ammo_selected_name2"></div>
+<div id="ammo_selected_airdrag2" ></div>
+<div  id="ammo_selected_diametr2"></div>
+<div  id="ammo_selected_mass2"></div>
+<div id="ammo_selected_krupp2"></div>
+<div id="ammo_selected_speed2"></div>
+<div id="ammo_selected_rico_start2"></div>
+<div id="ammo_selected_rico_always2"></div>
+<div id="ammo_selected_detotime2"></div>
+<div id="ammo_selected_detothresh2"></div></p>
+</td>
+</tr>
+</table>
+<div id="chart0"></div>
+<div id="chart1"></div>
+<div id="chart2"></div>
+<div id="chart3"></div>
+<!-- test for chart.js
+<div id="mycanvas">
+        <canvas id="canvas" width="1000" height="700" ></canvas>
+</div>
+-->
+<script>
+var ship_info=[{},{}];
+//var ship_info1;
+var the_ship=[{},{}];
+var pen_dict=[{},{}];
+//var the_ship2;
+//var glob_nation;
+//var glob_nation2;
+function load_version(id){
+  versio=["0.9.3"]
+  $("#version"+id).replaceWith("<select id=\"version"+id+"\" onchange=\"load_nation("+id+");\"></select>");  // replace the old select with a new empty select
+  for(var i in versio) {
+    $("#version"+id)[0].innerHTML += "<option value=\"" + versio[i] + "\">" + versio[i] + "</options>";  // append option
+}
+}
+
+function load_nation(id){
+  //$.getJSON(['./nations.json'],function(file){
+  //  console.log(file);
+  version_selector = $("#version"+id)[0];
+    selected_version = version_selector.options[version_selector.selectedIndex].value;
+    natio=["Commonwealth",
+      "Japan",
+      "United_Kingdom",
+      "France",
+      "Pan_America",
+      "Pan_Asia",
+      "USA",
+      "Germany",
+      "Poland",
+      "Italy",
+      "Russia"]
+    $.ajax({
+      url: "data/"+selected_version+"/nations.json",
+      type: "GET",
+      dataType: "json",
+      success: function (data) {
+      console.log(data);
+                                
+    $("#nation"+id).replaceWith("<select id=\"nation"+id+"\" onchange=\"load_types("+id+");\"></select>");  // replace the old select with a new empty select
+    for(var i in data) {
+      $("#nation"+id)[0].innerHTML += "<option value=\"" + data[i] + "\">" + data[i] + "</options>";  // append option
+    }
+    }
+  });
+}
+
+function load_types(id){
+  version_selector = $("#version"+id)[0];
+  selected_version = version_selector.options[version_selector.selectedIndex].value;
+  nation_selector = $("#nation"+id)[0];
+  selected_nation = nation_selector.options[nation_selector.selectedIndex].value;
+  console.log(selected_nation);
+  //glob_nation=selected_nation;
+  $.ajax({
+    url: "data/"+selected_version+"/"+selected_nation+"/shiptypes.json",
+    //url: "nations.json",
+    type: "GET",
+    dataType: "json",
+    success: function (data) {
+        //select_from_keys(data)
+        console.log(data);
+        $("#shiptype"+id).replaceWith("<select id=\"shiptype"+id+"\" onchange=\"load_ships("+id+");\"></select>");  // replace the old select with a new empty select
+        for(var i in data) {
+          $("#shiptype"+id)[0].innerHTML += "<option value=\"" + data[i] + "\">" + data[i] + "</options>";  // append option
+        }
+        load_ships(id);
+        //console.log(glob_nation);
+      //  ammo_properties();
+        //console.log(pen_dict.distance);
+      }
+  });
+}
+
+function load_ships(id){
+  version_selector = $("#version"+id)[0];
+  selected_version = version_selector.options[version_selector.selectedIndex].value;
+  nation_selector = $("#nation"+id)[0];
+  selected_nation = nation_selector.options[nation_selector.selectedIndex].value;
+  file_selector = $("#shiptype"+id)[0];
+  selected_shiptype = selected_nation+"_"+file_selector.options[file_selector.selectedIndex].value;
+  console.log(selected_shiptype);
+  $.ajax({
+    url: "data/"+selected_version+"/"+selected_nation+"/"+selected_shiptype+".json",
+    //url: "nations.json",
+    type: "GET",
+    dataType: "json",
+    success: function (data) {
+        //select_from_keys(data)
+        ship_info[id]=data;
+        console.log(data);
+        select_from_keys(data,id)
+  //      $("#value_loaded")[0].innerHTML = Object.keys(data)
+//        $("#shiplist").replaceWith("<select id=\"shiplist\" onchange=\"load_types();\"></select>");  // replace the old select with a new empty select
+  //      for(var i in data) {
+    //      $("#shiplist")[0].innerHTML += "<option value=\"" + data[i] + "\">" + data[i] + "</options>";  // append option
+      //  }
+        console.log(Object.keys(data))
+        load_ammo(id);
+        //ammo_properties();
+        //console.log(pen_dict.distance);
+      }
+  });
+}
+
+function load_ammo(id){
+  version_selector = $("#version"+id)[0];
+  selected_version = version_selector.options[version_selector.selectedIndex].value;
+  nation_selector = $("#nation"+id)[0];
+  selected_nation = nation_selector.options[nation_selector.selectedIndex].value;
+  ship_selector = $("#shiplist"+id)[0];
+  ship_name = ship_selector.options[ship_selector.selectedIndex].value;
+  selected_ship = ship_info[id][ship_name];
+  the_ship[id]=selected_ship;
+  the_ship[id].name=ship_name.toString().substring(8).replace(/_19[0-9][0-9]/i,'');
+  console.log(selected_ship.ammo_num);
+  artylist=[]
+  for(i=0;i<selected_ship.ammo_num;i++){
+    artylist.push("Artillery"+i.toString());
+  }
+  $("#ammolist"+id).replaceWith("<select id=\"ammolist"+id+"\" onchange=\"ammo_properties("+id+");\"></select>");  // replace the old select with a new empty select
+  for(var i in artylist) {
+    $("#ammolist"+id)[0].innerHTML += "<option value=\"" + artylist[i] + "\">" + artylist[i] + "</options>";  // append option
+  }
+  ammo_properties(id);
+        //console.log(pen_dict.distance);
+}
+load_version(1);
+load_version(2);
+load_nation(1);
+load_nation(2);
+load_types(1);
+load_types(2);
+//console.log(glob_nation);
+/*
+function load_value(nation) {
+    file_selector = $("#file_to_read")[0];
+    selected_filename = file_selector.options[file_selector.selectedIndex].value;
+    $.ajax({
+      url: "data/"+selected_filename+".json",
+      //url: nation+"/"+selected_filename+".json",
+
+      type: "GET",
+      dataType: "json",
+      success: function (data) {
+        ship_info=data;
+          select_from_keys(data)
+          $("#value_loaded")[0].innerHTML = Object.keys(data)
+          ammo_properties();
+          //console.log(pen_dict.distance);
+
+      }
+    });
+  }
+*/
+    function select_from_keys(data,id) {
+      console.log(Object.keys(data).length)
+      datakey=Object.keys(data);
+      ship_tuple=[];
+      for(var i in datakey){
+        ship_tuple.push([[data[datakey[i]].Tier],[datakey[i]]]);
+      }
+      ship_tuple.sort(function(a, b) {
+          a = a[0];
+          b = b[0];
+          return a-b;
+          //return a < b ? -1 : (a > b ? 1 : 0);
+      });
+      $("#shiplist"+id).replaceWith("<select id=\"shiplist"+id+"\" onchange=\"load_ammo("+id+");\"></select>");  // replace the old select with a new empty select
+      for(var i in ship_tuple) {
+        outp_name=(ship_tuple[i][1].toString()).substring(8).replace(/_19[0-9][0-9]/i,'')
+        $("#shiplist"+id)[0].innerHTML += "<option value=\"" + ship_tuple[i][1] + "\">" + "Tier "+ship_tuple[i][0]+" "+outp_name+ "</options>";  // append option
+      }
+    }
+
+    function ammo_properties(id){
+      // display ammo information
+      version_selector = $("#version"+id)[0];
+      selected_version = version_selector.options[version_selector.selectedIndex].value;
+      ammo_selector = $("#ammolist"+id)[0];
+      ammo_name = ammo_selector.options[ammo_selector.selectedIndex].value;
+      selected_ammo=the_ship[id][ammo_name]
+      console.log(selected_ammo.AP.bulletName);
+      console.log(ammo_name);
+      var c_D,Dia,mass,krupp,v_0;
+      c_D=selected_ammo.AP.bulletAirDrag;
+      Dia=selected_ammo.AP.bulletDiametr;
+      mass=selected_ammo.AP.bulletMass;
+      krupp=selected_ammo.AP.bulletKrupp;
+      v_0=selected_ammo.AP.bulletSpeed;
+      $("#ammo_selected_name"+id)[0].innerHTML = "Ammo Name: "+(selected_ammo.AP.bulletName).substring(8);
+      $("#ammo_selected_airdrag"+id)[0].innerHTML = "Air Drag Coeff: "+selected_ammo.AP.bulletAirDrag;
+      $("#ammo_selected_diametr"+id)[0].innerHTML = "Caliber: "+1000*selected_ammo.AP.bulletDiametr+" mm";
+      $("#ammo_selected_mass"+id)[0].innerHTML = "Mass: "+selected_ammo.AP.bulletMass+" kg";
+      $("#ammo_selected_krupp"+id)[0].innerHTML = "Krupp: "+selected_ammo.AP.bulletKrupp;
+      $("#ammo_selected_speed"+id)[0].innerHTML = "Muzzle Velocity: "+selected_ammo.AP.bulletSpeed+" m/s";
+      $("#ammo_selected_rico_start"+id)[0].innerHTML = "Starts Ricochet at: "+selected_ammo.AP.bulletRicochetAt+" degree";
+      $("#ammo_selected_rico_always"+id)[0].innerHTML = "Always Ricochet at: "+selected_ammo.AP.bulletAlwaysRicochetAt+" degree";
+      $("#ammo_selected_detotime"+id)[0].innerHTML = "Fuse detonation delay: "+selected_ammo.AP.bulletDetonator+" s";
+      $("#ammo_selected_detothresh"+id)[0].innerHTML = "Fuse armed threshold: "+selected_ammo.AP.bulletDetonatorThreshold+" mm";
+
+      // draw ammo penetration curve
+      pen_dict[id-1]= calculator(mass,Dia,c_D,v_0,krupp);
+      pen_dict[id-1].name=selected_version+"_"+the_ship[id].name+"_"+ammo_name.substring(9);
+      pen_dict[id-1].rico0=selected_ammo.AP.bulletRicochetAt;
+      pen_dict[id-1].rico1=selected_ammo.AP.bulletAlwaysRicochetAt;
+
+      console.log(the_ship[id].name);
+      console.log(jQuery.isEmptyObject(pen_dict[0]));
+      console.log(jQuery.isEmptyObject(pen_dict[1]));
+      if (1 && !jQuery.isEmptyObject(pen_dict[1]) && !jQuery.isEmptyObject(pen_dict[0])){
+      update_chart(pen_dict,0);
+      update_chart(pen_dict,1);
+      update_chart(pen_dict,2);
+      update_chart(pen_dict,3);
+    }
+    }
+
+</script>
+<script type='text/javascript' id='clustrmaps' src='//cdn.clustrmaps.com/map_v2.js?cl=ffffff&w=150&t=n&d=HEBKSdOvPBJay6vAQpEnzJ5sVMbNwEFSiVLQ9_78hkw'></script>
+<p>If you find a bug or want a new feature, please <a href="https://github.com/MustangHX/ship_ap_calculator/issues">open an issue</a> at GitHub. Your suggestions will be considered at later development.</p>
+</body>
+</html>
