@@ -75,7 +75,7 @@ function calculator(m, D, c_D, v_0, K) {
 
 
         v_imp = Math.sqrt(v_x * v_x + v_y * v_y)
-        pen_abs = Math.pow(C_pen, 1.43) * Math.pow(v_imp, 1.43) * Math.pow(m, 0.715) / Math.pow(D * 1000, 1.07) // weird penetration formula
+        pen_abs = 1.2 * (K / 2400) * Math.pow(v_imp, 1.43) * Math.pow(m, 0.715) * 100 / ( Math.pow(D * 10, 1.07) * Math.pow(2400, 1.43) ) // weird penetration formula
 
         IA = Math.atan(Math.abs(v_y) / Math.abs(v_x))
 
