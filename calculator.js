@@ -1,7 +1,7 @@
 function calculator(m, D, c_D, v_0, K) {
     //integration for trajectories
     // SHELL CONSTANTS
-    C = 0.5561613; // PENETRATION
+    C = 0.7945161; // PENETRATION
     g = 9.81; // GRAVITY
     T_0 = 288.; // TEMPERATURE AT SEA LEVEL
     L = 0.0065; // TEMPERATURE LAPSE RATE
@@ -75,7 +75,7 @@ function calculator(m, D, c_D, v_0, K) {
 
 
         v_imp = Math.sqrt(v_x * v_x + v_y * v_y)
-        pen_abs = Math.pow(C_pen, 1.43) * Math.pow(v_imp, 1.43) * Math.pow(m, 0.715) / Math.pow(D * 1000, 1.07) // weird penetration formula
+        pen_abs = Math.pow(C_pen, 1.43) * Math.pow(v_imp, 1.43) * Math.pow(m, 0.715) * 100 / Math.pow(D * 10, 1.07) // weird penetration formula
 
         IA = Math.atan(Math.abs(v_y) / Math.abs(v_x))
 
